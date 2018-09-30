@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"><link>
+        <style>
+            .book input{
+                width : 150px;
+            }
+
+            .book select, .book button{
+                width : 156px;
+            }
+
+            .book label {
+                display: inline-block;
+                width: 50px;
+                text-align: right;
+            }
+            
+            .show th{
+                width: 100px;
+                border: 1px dotted blue;
+            }
+
+            .booked{
+                background-color: #f0f0f5;
+                text-align: center;
+                border-left: 1px dotted green;
+                border-right: 1px dotted red;
+            }
+
+            .not_booked{
+                border-left: 1px dotted grey;
+            }
+            .booked img{
+                width: 12px;
+                height: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="book">
+            <form action="{{ url_for('book_slot') }}" method="POST">
+                <label for="user">User :</label>
+                <input type="text" id="user" name="user" required/>
+                <br/>
+                <label for="begin">From :</label>
+                {# <input type="time" id="begin" name="begin" required/> #}
+                <select id="begin" name="begin" required>
+                    {% for i in range(0,26): %}
+                        {% if i%2 == 0 : %}
+                            {% if i < 10: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 AM' %((i/2) + 7) }}</option>
+                            {% elif i == 10 or i == 11: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 PM' %((i/2) + 7) }}</option>   
+                            {% else: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 PM' %((i/2) + 7 - 12) }}</option>
+                            {% endif %}
+                            
+                        {% else: %}
+                            {% if i < 10: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 AM' %(((i-1)/2) + 7) }}</option>
+                            {% elif i == 10 or i == 11: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 PM' %(((i-1)/2) + 7) }}</option>
+                            {% else: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 PM' %(((i-1)/2) + 7 - 12) }}</option>  
+                            {% endif %}
+
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <br/>
+                <label for="end">Till :</label>
+                {# <input type="time" id="end" name="end" required/> #}
+                <select id="end" name="end" required>
+                    {% for i in range(0,26): %}
+                        {% if i%2 == 0 : %}
+                            {% if i < 10: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 AM' %((i/2) + 7) }}</option>
+                            {% elif i == 10 or i == 11: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 PM' %((i/2) + 7) }}</option>   
+                            {% else: %}
+                                <option value="{{ i }}" default>{{ '%02d:00 PM' %((i/2) + 7 - 12) }}</option>
+                            {% endif %}
+                            
+                        {% else: %}
+                            {% if i < 10: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 AM' %(((i-1)/2) + 7) }}</option>
+                            {% elif i == 10 or i == 11: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 PM' %(((i-1)/2) + 7) }}</option>
+                            {% else: %}
+                                <option value="{{ i }}" default>{{ '%02d:30 PM' %(((i-1)/2) + 7 - 12) }}</option>  
+                            {% endif %}
+
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <br/>
+                <label for="date">Date :</label>
+                <select id="date" name="date" required>
+                    <option value="0" default>Today</option>
+                    <option value="1">Tomorrow</option>
+                </select>
+                <br/>
+                <label for="lab">Lab :</label>
+                <select id="lab" name="lab" required>
+                    <option value="LAB1" default>LAB1</option>
+                </select>
+                <br/>
+                <label></label>
+                <button type="submit">Book</button>
+                <br/>
+            </form>
+        </div>
+        <div class="show">
+            <br/><br/>
+            <table>
+                <tr>
+                    <th colspan="27">TODAY</th>
+                </tr>
+                <tr>
+                    <th colspan="10">AM</th>
+                    <th colspan="16">PM</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    {% for i in range(7,20): %}
+                        {% if i >= 13 : %}
+                        <th>{{ "{}:00".format(i-12) }}</th>
+                        <th>{{ "{}:30".format(i-12) }}</th>
+                        {% else: %}
+                        <th>{{ "{}:00".format(i) }}</th>
+                        <th>{{ "{}:30".format(i) }}</th>
+                        {% endif %}
+                    {% endfor %}
+                    <th></th>
+                </tr>
+                {% for booking in booked_slots_today%}
+                <tr>
+                    {% for i in range(26): %}
+                        {% if booking[1] == i : %}
+                        <td colspan="{{ 1 + booking[2] - booking[1] }}" class="booked">{{ booking[0] }}</td>
+                        {% elif i > booking[2] or i< booking[1]: %}
+                        <td class="not_booked">{{ "" }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    <td class="booked"><a href="{{ url_for('delete_slot') }}?uid={{ booking[3] }}"> <img src="{{ url_for('static', filename='del.png') }}"/> </a></td>
+                </tr>
+                {% endfor %}
+
+
+            </table>
+            <br/><br/><br/>
+            <table>
+                <tr>
+                    <th colspan="27">TOMORROW</th>
+                </tr>
+                <tr>
+                    <th colspan="10">AM</th>
+                    <th colspan="16">PM</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    {% for i in range(7,20): %}
+                        {% if i >= 13 : %}
+                        <th>{{ "{}:00".format(i-12) }}</th>
+                        <th>{{ "{}:30".format(i-12) }}</th>
+                        {% else: %}
+                        <th>{{ "{}:00".format(i) }}</th>
+                        <th>{{ "{}:30".format(i) }}</th>
+                        {% endif %}
+                    {% endfor %}
+                    <th></th>
+                </tr>
+                {% for booking in booked_slots_tomorrow%}
+                <tr>
+                    {% for i in range(26): %}
+                        {% if booking[1] == i : %}
+                        <td colspan="{{ 1 + booking[2] - booking[1] }}" class="booked">{{ booking[0] }}</td>
+                        {% elif i > booking[2] or i< booking[1]: %}
+                        <td class="not_booked">{{ "" }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    <td class="booked"><a href="{{ url_for('delete_slot') }}?uid={{ booking[3] }}"> <img src="{{ url_for('static', filename='del.png') }}"/> </a></td>
+                </tr>
+                {% endfor %}
+
+            </table>
+        </div>
+    </body>
+    {% if status == "NOK" : %}
+    <script>
+        window.alert("selected time slot is invalid or not free; please select some other slot")
+        window.location.replace("{{ url_for('index') }}");
+    </script>
+    {% endif %}
+    
+</html>
